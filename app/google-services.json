@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "752740345488",
+    "project_id": "make-my-day-6f431",
+    "storage_bucket": "make-my-day-6f431.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752740345488:android:eec60190e6382be2355a15",
+        "android_client_info": {
+          "package_name": "com.makemyday.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3KCwrxYAMLMYIYJJbhDiRpQ23y5BOfNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
