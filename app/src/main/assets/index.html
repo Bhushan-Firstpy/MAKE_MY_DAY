@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6c63ff">
+<title>MAKE MY DAY</title>
+<style>
+:root{--bg:#f5f6fb;--card:#fff;--text:#171827;--muted:#6b6d7a;--primary:#6c63ff;--border:#e6e7ef;--soft:#efeeff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:18px 16px 90px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.brand{font-weight:800;font-size:22px;letter-spacing:.3px}.tag{font-size:11px;color:var(--muted);margin-top:2px}
+.icon{border:0;background:var(--card);color:var(--text);width:42px;height:42px;border-radius:14px;font-size:20px;box-shadow:0 2px 12px #0000000b}
+.hero{background:linear-gradient(145deg,#7168ff,#8d86ff);color:white;border-radius:28px;padding:26px 22px;box-shadow:0 12px 30px #6c63ff30}
+.eyebrow{font-size:12px;opacity:.85;text-transform:uppercase;letter-spacing:1.2px}.message{font-size:25px;line-height:1.3;font-weight:750;margin:12px 0 18px}
+.meta{display:flex;gap:8px;flex-wrap:wrap}.pill{background:#ffffff25;border:1px solid #ffffff40;padding:6px 10px;border-radius:99px;font-size:12px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+select,button{font:inherit;color:var(--text)}select{width:100%;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--card);color:var(--text)}
+.actions{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:9px;margin-top:12px}
+button.action{padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--card);font-weight:650}
+button.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.section{margin-top:22px}.section h2{font-size:16px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:15px;margin-bottom:10px}
+.card p{margin:0 0 10px;line-height:1.45}.small{font-size:12px;color:var(--muted)}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#ffffffea;backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:10px;z-index:5}
+.bottomin{max-width:520px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}.bottomin .action{color:var(--text)}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:20;padding:18px;align-items:flex-end;justify-content:center}
+.modal.open{display:flex}.sheet{background:var(--card);width:min(520px,100%);border-radius:24px 24px 0 0;padding:20px;max-height:90vh;overflow:auto}
+textarea{width:100%;min-height:130px;border:1px solid var(--border);border-radius:14px;padding:12px;resize:vertical}
+input{width:100%;padding:12px;border:1px solid var(--border);border-radius:14px;margin-bottom:10px}
+.row{display:flex;gap:10px}.row>*{flex:1}.empty{color:var(--muted);font-size:14px;padding:10px 0}
+input[type="checkbox"]{accent-color:var(--primary)}
+.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:#171827;color:#fff;padding:10px 14px;border-radius:99px;font-size:13px;display:none;z-index:30}
+@media(max-width:380px){.message{font-size:22px}.actions{grid-template-columns:1fr 1fr}.actions .primary{grid-column:span 2}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><div class="brand">MAKE MY DAY</div><div class="tag">One useful thought. One better step.</div></div>
+  <button class="icon" id="themeBtn" title="Theme">☾</button>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Today's thought</div>
+  <div class="message" id="message"></div>
+  <div class="meta"><span class="pill" id="langPill"></span><span class="pill" id="catPill"></span></div>
+</section>
+
+<div class="controls">
+  <select id="lang"></select>
+  <select id="cat"></select>
+</div>
+<div class="actions">
+  <button class="action primary" id="next">Next Message</button>
+  <button class="action" id="save">♡ Save</button>
+  <button class="action" id="share">↗ Share</button>
+</div>
+
+<section class="section">
+  <h2>Saved</h2>
+  <div id="saved"></div>
+</section>
+
+<section class="section">
+  <h2>Community thoughts</h2>
+  <div id="community"></div>
+</section>
+
+
+<section class="section">
+  <h2>Notifications</h2>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div>
+        <strong>Daily inspiration</strong>
+        <div class="small" id="notifStatus">Notifications are off</div>
+      </div>
+      <button class="action primary" id="notifSettings">Settings</button>
+    </div>
+  </div>
+</section>
+
+<div class="modal" id="notifModal">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 style="margin:0 0 14px">Notification Settings</h2>
+      <button class="icon" id="notifClose">×</button>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div>
+          <strong>Daily notification</strong>
+          <div class="small">Choose when MAKE MY DAY should remind you.</div>
+        </div>
+        <input id="notifEnabled" type="checkbox" style="width:22px;height:22px;margin:0">
+      </div>
+    </div>
+
+    <label class="small">Notification time</label>
+    <input id="notifTime" type="time" value="09:00">
+
+    <label class="small">Notification type</label>
+    <select id="notifType" style="margin-bottom:10px">
+      <option value="thought">Daily inspirational thought</option>
+      <option value="reminder">Daily reminder to open MAKE MY DAY</option>
+    </select>
+
+    <button class="action primary" id="testNotif" style="width:100%;margin-bottom:10px">Show Notification Preview</button>
+    <button class="action" id="saveNotif" style="width:100%">Save Settings</button>
+
+    <p class="small" style="margin-top:12px">
+      This test version shows the notification design inside the app. Real background Android notifications will be added to the final Android app.
+    </p>
+  </div>
+</div>
+
+<div id="notifPreview" style="display:none;position:fixed;top:16px;left:16px;right:16px;z-index:100;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;box-shadow:0 12px 35px #0005">
+  <div style="display:flex;gap:12px;align-items:flex-start">
+    <div style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:800">M</div>
+    <div style="flex:1">
+      <div style="font-weight:750">MAKE MY DAY <span class="small" id="notifNow">now</span></div>
+      <div style="font-size:14px;line-height:1.35;margin-top:3px" id="notifPreviewText"></div>
+    </div>
+    <button class="icon" id="notifPreviewClose" style="width:32px;height:32px">×</button>
+  </div>
+</div>
+<div class="bottom"><div class="bottomin">
+  <button class="action primary" id="contribute">＋ Share Your Thought</button>
+  <button class="action" id="clear">Reset Test Data</button>
+</div></div>
+</div>
+
+<div class="modal" id="modal">
+ <div class="sheet">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h2 style="margin:0 0 14px">Share Your Thought</h2><button class="icon" id="close">×</button>
+  </div>
+  <input id="name" placeholder="Your name / nickname">
+  <div class="row">
+    <select id="cLang"><option>English</option><option>Hindi</option><option>Marathi</option></select>
+    <select id="cCat"></select>
+  </div>
+  <textarea id="thought" placeholder="Write your original inspirational thought..."></textarea>
+  <p class="small">By submitting, you confirm this is your own text and agree that it can be reviewed and published with the name you provide.</p>
+  <button class="action primary" id="submit" style="width:100%">Submit for Review</button>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const cats=["Motivation","Confidence","Productivity","Study","Career","Business","Health","Relationships","Self-discipline","Peace and mindfulness","Success","Hope","Personal growth"];
+const messages=[
+["English","Motivation","Start before you feel completely ready. Progress often begins with one imperfect step."],
+["English","Confidence","You do not need everyone's approval to take your next honest step."],
+["English","Productivity","Choose one important task, finish it with attention, then move to the next."],
+["English","Career","Build skills that remain useful even when circumstances change."],
+["English","Self-discipline","Make the small action so clear that you can do it even on an unmotivated day."],
+["English","Hope","A difficult phase is a chapter, not the definition of your whole story."],
+["English","Personal growth","Compare yourself with who you were yesterday, then improve one thing today."],
+["Hindi","Motivation","शुरुआत छोटी हो सकती है, लेकिन लगातार उठाया गया कदम दिशा बदल सकता है।"],
+["Hindi","Confidence","हर किसी की मंज़ूरी ज़रूरी नहीं है; अपने सही अगले कदम पर ध्यान दें।"],
+["Hindi","Productivity","एक समय में एक जरूरी काम पूरे ध्यान से करें, फिर अगले काम पर जाएँ।"],
+["Hindi","Self-discipline","मन न होने वाले दिन भी छोटी सही आदत को निभाना अनुशासन बनाता है।"],
+["Hindi","Hope","मुश्किल समय आपकी पूरी कहानी नहीं है; यह कहानी का सिर्फ एक हिस्सा है।"],
+["Marathi","Motivation","सुरुवात परिपूर्ण असण्याची गरज नाही; एक छोटं पाऊलही पुढची दिशा ठरवू शकतं."],
+["Marathi","Confidence","प्रत्येकाची मान्यता मिळवण्यापेक्षा स्वतःच्या योग्य निर्णयावर विश्वास ठेवा."],
+["Marathi","Productivity","एकावेळी एक महत्त्वाचं काम पूर्ण करा आणि मग पुढच्या कामाकडे वळा."],
+["Marathi","Career","परिस्थिती बदलली तरी उपयोगी पडतील अशी कौशल्ये सातत्याने विकसित करा."],
+["Marathi","Self-discipline","मन नसतानाही छोटी योग्य सवय पूर्ण करणे म्हणजे शिस्त मजबूत करणे."],
+["Marathi","Personal growth","कालच्या स्वतःशी तुलना करा आणि आज एक गोष्ट थोडी अधिक चांगली करा."]
+];
+
+const $=id=>document.getElementById(id);
+const saved=JSON.parse(localStorage.getItem("mmd_saved")||"[]");
+const community=JSON.parse(localStorage.getItem("mmd_community")||"[]");
+let idx=0;
+
+function fill(){
+  $("lang").innerHTML=["All","English","Hindi","Marathi"].map(x=>`<option>${x}</option>`).join("");
+  $("cat").innerHTML=["All",...cats].map(x=>`<option>${x}</option>`).join("");
+  $("cCat").innerHTML=cats.map(x=>`<option>${x}</option>`).join("");
+}
+function pool(){
+  return messages.filter(m=>($("lang").value==="All"||m[0]===$("lang").value)&&($("cat").value==="All"||m[1]===$("cat").value));
+}
+function render(){
+  const p=pool(); if(!p.length){$("message").textContent="No message matches these filters yet.";return}
+  if(idx>=p.length)idx=0; const m=p[idx];
+  $("message").textContent=m[2];$("langPill").textContent=m[0];$("catPill").textContent=m[1];
+  $("save").textContent=saved.some(x=>x[2]===m[2])?"♥ Saved":"♡ Save";
+  renderSaved();renderCommunity();
+}
+function renderSaved(){
+  $("saved").innerHTML=saved.length?saved.slice().reverse().map((m,i)=>`<div class="card"><p>${esc(m[2])}</p><div class="small">${esc(m[0])} · ${esc(m[1])}</div></div>`).join(""):'<div class="empty">No saved messages yet.</div>';
+}
+function renderCommunity(){
+  $("community").innerHTML=community.length?community.slice().reverse().map(x=>`<div class="card"><p>${esc(x.message)}</p><div class="small">${esc(x.name||"Anonymous")} · ${esc(x.language)} · ${esc(x.category)} · Pending review</div></div>`).join(""):'<div class="empty">Be the first to share an original thought.</div>';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function toast(t){$("toast").textContent=t;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",1800)}
+
+$("next").onclick=()=>{idx++;render()};
+$("lang").onchange=()=>{idx=0;render()};
+$("cat").onchange=()=>{idx=0;render()};
+$("save").onclick=()=>{
+ const p=pool()[idx]; if(!p)return;
+ const i=saved.findIndex(x=>x[2]===p[2]); if(i>=0)saved.splice(i,1); else saved.push(p);
+ localStorage.setItem("mmd_saved",JSON.stringify(saved));render();toast(i>=0?"Removed from saved":"Saved");
+};
+$("share").onclick=async()=>{
+ const p=pool()[idx]; if(!p)return;
+ const text=`${p[2]}\n\n— MAKE MY DAY`;
+ try{if(navigator.share)await navigator.share({text});else{await navigator.clipboard.writeText(text);toast("Copied to clipboard")}}catch(e){}
+};
+$("contribute").onclick=()=>$("modal").classList.add("open");
+$("close").onclick=()=>$("modal").classList.remove("open");
+$("submit").onclick=()=>{
+ const name=$("name").value.trim(), message=$("thought").value.trim();
+ if(!message){toast("Please write your thought");return}
+ community.push({name:name||"Anonymous",language:$("cLang").value,category:$("cCat").value,message});
+ localStorage.setItem("mmd_community",JSON.stringify(community));
+ $("name").value="";$("thought").value="";$("modal").classList.remove("open");renderCommunity();toast("Submitted for review");
+};
+$("clear").onclick=()=>{if(confirm("Reset saved and community test data?")){localStorage.removeItem("mmd_saved");localStorage.removeItem("mmd_community");location.reload()}};
+function applyTheme(dark){
+ document.documentElement.dataset.dark=dark?"1":"0";
+ if(dark){
+  document.documentElement.style.setProperty("--bg","#101116");
+  document.documentElement.style.setProperty("--card","#191a21");
+  document.documentElement.style.setProperty("--text","#f4f4f7");
+  document.documentElement.style.setProperty("--muted","#a7a8b3");
+  document.documentElement.style.setProperty("--border","#30313b");
+  document.documentElement.style.setProperty("--soft","#26243f");
+  $("themeBtn").textContent="☀";
+ }else{
+  document.documentElement.style.setProperty("--bg","#f5f6fb");
+  document.documentElement.style.setProperty("--card","#fff");
+  document.documentElement.style.setProperty("--text","#171827");
+  document.documentElement.style.setProperty("--muted","#6b6d7a");
+  document.documentElement.style.setProperty("--border","#e6e7ef");
+  document.documentElement.style.setProperty("--soft","#efeeff");
+  $("themeBtn").textContent="☾";
+ }
+ localStorage.setItem("mmd_theme",dark?"dark":"light");
+}
+$("themeBtn").onclick=()=>applyTheme(document.documentElement.dataset.dark!=="1");
+applyTheme(localStorage.getItem("mmd_theme")==="dark");
+
+function getNotificationBody(){
+  const p=pool();
+  if(!p.length) return "Take one useful step today.";
+  const m=p[Math.floor(Math.random()*p.length)];
+  return $("notifType").value==="reminder"
+    ? "Take a moment for yourself. Open MAKE MY DAY for today's thought."
+    : m[2];
+}
+
+function showNotificationPreview(){
+  const box=$("notifPreview");
+  $("notifPreviewText").textContent=getNotificationBody();
+  box.style.display="block";
+  clearTimeout(window.mmdPreviewTimer);
+  window.mmdPreviewTimer=setTimeout(()=>box.style.display="none",6000);
+}
+
+function updateNotificationStatus(){
+  const enabled=localStorage.getItem("mmd_notif_enabled")==="1";
+  const time=localStorage.getItem("mmd_notif_time")||"09:00";
+  $("notifStatus").textContent=enabled ? `On · Daily at ${time}` : "Notifications are off";
+  $("notifEnabled").checked=enabled;
+  $("notifTime").value=time;
+  $("notifType").value=localStorage.getItem("mmd_notif_type")||"thought";
+}
+
+function initNotifications(){
+  updateNotificationStatus();
+  $("notifSettings").onclick=()=>{updateNotificationStatus();$("notifModal").classList.add("open")};
+  $("notifClose").onclick=()=>$("notifModal").classList.remove("open");
+  $("testNotif").onclick=showNotificationPreview;
+  $("notifPreviewClose").onclick=()=>$("notifPreview").style.display="none";
+  $("saveNotif").onclick=()=>{
+    localStorage.setItem("mmd_notif_enabled",$("notifEnabled").checked?"1":"0");
+    localStorage.setItem("mmd_notif_time",$("notifTime").value||"09:00");
+    localStorage.setItem("mmd_notif_type",$("notifType").value);
+    updateNotificationStatus();
+    $("notifModal").classList.remove("open");
+    toast($("notifEnabled").checked ? `Daily notification set for ${$("notifTime").value}` : "Notifications turned off");
+  };
+}
+
+try{
+  fill();
+  render();
+  initNotifications();
+}catch(e){
+  console.error("MAKE MY DAY initialization error:",e);
+}
+</script>
+</body>
+</html>

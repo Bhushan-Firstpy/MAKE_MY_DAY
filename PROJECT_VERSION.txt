@@ -1,0 +1,3 @@
+MAKE MY DAY MobileStudio Project
+Compatibility build: JDK 17 + Gradle 8.2 + Android Gradle Plugin 8.2.2
+Version: 1.0
