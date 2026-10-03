@@ -3,6 +3,7 @@ package com.makemyday.app;
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -29,10 +30,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         createNotificationChannel();
-        requestNotificationPermissionIfNeeded();
 
         webView = new WebView(this);
         setContentView(webView);
+
+        webView.addJavascriptInterface(new NotificationBridge(this), "AndroidNotificationBridge");
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -55,12 +57,35 @@ public class MainActivity extends AppCompatActivity {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return !isAllowedUrl(url);
             }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                String quoteText = getIntent() != null ? getIntent().getStringExtra(NotificationHelper.EXTRA_QUOTE_TEXT) : null;
+                if (quoteText != null && !quoteText.trim().isEmpty()) {
+                    String script = "if (typeof window.mmdOpenQuoteFromNotification === 'function') { window.mmdOpenQuoteFromNotification(" + quoteText.replace("\\", "\\\\").replace("\"", "\\\"") + "); }";
+                    view.evaluateJavascript(script, null);
+                }
+            }
         });
 
         try {
             webView.loadUrl("file:///android_asset/index.html");
         } catch (Exception e) {
             Toast.makeText(this, "Unable to start MAKE MY DAY", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && webView != null) {
+            String quoteText = intent.getStringExtra(NotificationHelper.EXTRA_QUOTE_TEXT);
+            if (quoteText != null && !quoteText.trim().isEmpty()) {
+                String script = "if (typeof window.mmdOpenQuoteFromNotification === 'function') { window.mmdOpenQuoteFromNotification(" + quoteText.replace("\\", "\\\\").replace("\"", "\\\"") + "); }";
+                webView.post(() -> webView.evaluateJavascript(script, null));
+            }
         }
     }
 
@@ -91,7 +116,13 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == NOTIFICATION_PERMISSION_REQUEST) {
-            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                NotificationPreferencesModel preferences = NotificationPreferenceStore.load(this);
+                preferences.setNotificationsEnabled(true);
+                NotificationPreferenceStore.save(this, preferences);
+                NotificationScheduler.schedule(this, preferences);
+                Toast.makeText(this, "Notification permission granted.", Toast.LENGTH_SHORT).show();
+            } else {
                 Toast.makeText(
                     this,
                     "Notification permission is off. You can enable it later in app settings.",
@@ -101,16 +132,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isAllowedUrl(String url) {
-        if (url == null) {
-            return false;
-        }
-        return url.startsWith("file:///android_asset/") || url.startsWith("about:blank");
-    }
-
-    private void requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-            && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+    public void ensureNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                 this,
@@ -118,6 +142,38 @@ public class MainActivity extends AppCompatActivity {
                 NOTIFICATION_PERMISSION_REQUEST
             );
         }
+    }
+
+    public void triggerTestNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ensureNotificationPermission();
+            return;
+        }
+
+        NotificationPreferencesModel preferences = NotificationPreferenceStore.load(this);
+        if (!preferences.isNotificationsEnabled()) {
+            preferences.setNotificationsEnabled(true);
+            NotificationPreferenceStore.save(this, preferences);
+        }
+
+        NotificationQuoteSelector selector = new NotificationQuoteSelector();
+        NotificationQuote quote = selector.selectQuote(preferences);
+        if (quote == null) {
+            Toast.makeText(this, "No notification content available right now.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        NotificationHelper.sendNotification(this, quote, true);
+        NotificationHelper.updateRecentQuoteHistory(this, quote);
+    }
+
+    private boolean isAllowedUrl(String url) {
+        if (url == null) {
+            return false;
+        }
+        return url.startsWith("file:///android_asset/") || url.startsWith("about:blank");
     }
 
     private void createNotificationChannel() {

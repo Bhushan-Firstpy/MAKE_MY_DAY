@@ -32,7 +32,10 @@ input{width:100%;padding:12px;border:1px solid var(--border);border-radius:14px;
 .row{display:flex;gap:10px}.row>*{flex:1}.empty{color:var(--muted);font-size:14px;padding:10px 0}
 input[type="checkbox"]{accent-color:var(--primary)}
 .toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:#171827;color:#fff;padding:10px 14px;border-radius:99px;font-size:13px;display:none;z-index:30}
-@media(max-width:380px){.message{font-size:22px}.actions{grid-template-columns:1fr 1fr}.actions .primary{grid-column:span 2}}
+.notif-chip{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:var(--card);margin:6px 0}
+.notif-chip input{width:auto;margin:0}
+.notif-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:380px){.message{font-size:22px}.actions{grid-template-columns:1fr 1fr}.actions .primary{grid-column:span 2}.notif-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -68,7 +71,6 @@ input[type="checkbox"]{accent-color:var(--primary)}
   <div id="community"></div>
 </section>
 
-
 <section class="section">
   <h2>Notifications</h2>
   <div class="card">
@@ -99,25 +101,49 @@ input[type="checkbox"]{accent-color:var(--primary)}
       </div>
     </div>
 
-    <label class="small">Notification time</label>
-    <input id="notifTime" type="time" value="09:00">
-
-    <label class="small">Notification type</label>
-    <select id="notifType" style="margin-bottom:10px">
-      <option value="thought">Daily inspirational thought</option>
-      <option value="reminder">Daily reminder to open MAKE MY DAY</option>
+    <label class="small">Frequency</label>
+    <select id="notifFrequency" style="margin-bottom:10px">
+      <option value="OFF">Notifications OFF</option>
+      <option value="1/day">1 notification per day</option>
+      <option value="2/day">2 notifications per day</option>
+      <option value="4/day">4 notifications per day</option>
+      <option value="2h">Every 2 hours</option>
+      <option value="1h">Every 1 hour</option>
     </select>
 
-    <button class="action primary" id="testNotif" style="width:100%;margin-bottom:10px">Show Notification Preview</button>
+    <label class="small">Preferred content categories</label>
+    <div class="notif-grid" id="notifCategories"></div>
+
+    <label class="small" style="display:block;margin-top:12px">Preferred time periods</label>
+    <div class="notif-grid" id="notifTimePeriods"></div>
+
+    <div style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <label class="small" style="margin:0">Quiet hours</label>
+        <input id="notifQuietEnabled" type="checkbox" style="width:22px;height:22px;margin:0">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div>
+          <label class="small">Start</label>
+          <input id="notifQuietStart" type="time" value="22:00">
+        </div>
+        <div>
+          <label class="small">End</label>
+          <input id="notifQuietEnd" type="time" value="07:00">
+        </div>
+      </div>
+    </div>
+
+    <button class="action primary" id="testNotif" style="width:100%;margin:12px 0 10px">Test Notification</button>
     <button class="action" id="saveNotif" style="width:100%">Save Settings</button>
 
     <p class="small" style="margin-top:12px">
-      This test version shows the notification design inside the app. Real background Android notifications will be added to the final Android app.
+      This version keeps the app working normally while preparing local notification preferences for future Firebase integration.
     </p>
   </div>
 </div>
 
-<div id="notifPreview" style="display:none;position:fixed;top:16px;left:16px;right:16px;z-index:100;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;box-shadow:0 12px 35px #0005">
+<div id="notifPreview" style="display:none;position:fixed;top:16px;left:16px;right:16px;z-index:100;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px 16px;box-shadow:0 20px 30px #0000001a">
   <div style="display:flex;gap:12px;align-items:flex-start">
     <div style="width:40px;height:40px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:800">M</div>
     <div style="flex:1">
@@ -134,24 +160,25 @@ input[type="checkbox"]{accent-color:var(--primary)}
 </div>
 
 <div class="modal" id="modal">
- <div class="sheet">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <h2 style="margin:0 0 14px">Share Your Thought</h2><button class="icon" id="close">×</button>
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 style="margin:0 0 14px">Share Your Thought</h2><button class="icon" id="close">×</button>
+    </div>
+    <input id="name" placeholder="Your name / nickname">
+    <div class="row">
+      <select id="cLang"><option>English</option><option>Hindi</option><option>Marathi</option></select>
+      <select id="cCat"></select>
+    </div>
+    <textarea id="thought" placeholder="Write your original inspirational thought..."></textarea>
+    <p class="small">By submitting, you confirm this is your own text and agree that it can be reviewed and published with the name you provide.</p>
+    <button class="action primary" id="submit" style="width:100%">Submit for Review</button>
   </div>
-  <input id="name" placeholder="Your name / nickname">
-  <div class="row">
-    <select id="cLang"><option>English</option><option>Hindi</option><option>Marathi</option></select>
-    <select id="cCat"></select>
-  </div>
-  <textarea id="thought" placeholder="Write your original inspirational thought..."></textarea>
-  <p class="small">By submitting, you confirm this is your own text and agree that it can be reviewed and published with the name you provide.</p>
-  <button class="action primary" id="submit" style="width:100%">Submit for Review</button>
- </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
 const cats=["Motivation","Confidence","Productivity","Study","Career","Business","Health","Relationships","Self-discipline","Peace and mindfulness","Success","Hope","Personal growth"];
+const notifPeriodLabels=["Morning","Before noon","Afternoon","Evening","Night"];
 const messages=[
 ["English","Motivation","Start before you feel completely ready. Progress often begins with one imperfect step."],
 ["English","Confidence","You do not need everyone's approval to take your next honest step."],
@@ -165,138 +192,490 @@ const messages=[
 ["Hindi","Productivity","एक समय में एक जरूरी काम पूरे ध्यान से करें, फिर अगले काम पर जाएँ।"],
 ["Hindi","Self-discipline","मन न होने वाले दिन भी छोटी सही आदत को निभाना अनुशासन बनाता है।"],
 ["Hindi","Hope","मुश्किल समय आपकी पूरी कहानी नहीं है; यह कहानी का सिर्फ एक हिस्सा है।"],
-["Marathi","Motivation","सुरुवात परिपूर्ण असण्याची गरज नाही; एक छोटं पाऊलही पुढची दिशा ठरवू शकतं."],
+["Hindi","Personal growth","कल के आप से तुलना करें, और आज एक चीज़ थोड़ा बेहतर बनाइए।"],
+["Marathi","Motivation","सुरुवात परिपूर्ण असण्याची गरज नाही; एक छोटं पाऊलही पुढची दिशा ठरवू शकते."],
 ["Marathi","Confidence","प्रत्येकाची मान्यता मिळवण्यापेक्षा स्वतःच्या योग्य निर्णयावर विश्वास ठेवा."],
 ["Marathi","Productivity","एकावेळी एक महत्त्वाचं काम पूर्ण करा आणि मग पुढच्या कामाकडे वळा."],
 ["Marathi","Career","परिस्थिती बदलली तरी उपयोगी पडतील अशी कौशल्ये सातत्याने विकसित करा."],
 ["Marathi","Self-discipline","मन नसतानाही छोटी योग्य सवय पूर्ण करणे म्हणजे शिस्त मजबूत करणे."],
-["Marathi","Personal growth","कालच्या स्वतःशी तुलना करा आणि आज एक गोष्ट थोडी अधिक चांगली करा."]
+["Marathi","Personal growth","कालच्या स्वतःशी तुलना करा आणि आज एक गोष्ट थोडी अधिक चांगली करा."],
+["English","Health","Your next good habit is an act of care, not punishment."],
+["English","Relationships","Kindness is often the quietest way to build trust."],
+["English","Peace and mindfulness","You do not need to solve everything to create a calmer day."],
+["English","Business","Clear decisions compound faster than busy activity."],
+["English","Study","A small, consistent study session is stronger than a dramatic burst of effort."],
+["English","Success","Success is usually built by steady actions that no one sees at first."],
+["Hindi","Health","अच्छी आदतें खुद पर दया करने का तरीका हैं, सज़ा नहीं।"],
+["Hindi","Relationships","दया और सुनना रिश्ते बनाने का सबसे शांत तरीका है।"],
+["Hindi","Peace and mindfulness","सभी सवालों का जवाब पाना जरूरी नहीं है; शांति भी एक कदम है।"],
+["Hindi","Business","स्पष्ट निर्णय व्यस्त रहने से अधिक तेज़ परिणाम देते हैं।"],
+["Hindi","Study","छोटा, नियमित अभ्यास बड़े लक्ष्यों को मजबूत बनाता है।"],
+["Hindi","Success","सफलता अक्सर उन छोटी, लगातार मेहनतों से बनती है जो शुरुआत में दिखती नहीं हैं।"],
+["Marathi","Health","तुमची पुढची चांगली सवय हा स्वतःवर प्रेम दाखवण्याचा मार्ग आहे."],
+["Marathi","Relationships","दया आणि आदर यामुळे नातेसंबंध अधिक मजबूत होतात."],
+["Marathi","Peace and mindfulness","सर्व समस्या एकाच वेळी सोडवणे आवश्यक नाही; शांतीही एक योग्य पाऊल आहे."],
+["Marathi","Business","स्पष्ट निर्णय आणि नियमित काम यामुळे अधिक परिणाम मिळतात."],
+["Marathi","Study","लहान, नियमित अभ्यास हा मोठ्या यशाचा आधार असतो."],
+["Marathi","Success","यश हे प्रामुख्याने सतत घेतलेल्या लहान, योग्य पावलांमुळे होते."],
+["English","Motivation","One consistent step is worth more than a perfect plan you never begin."],
+["English","Confidence","Confidence grows when you act before you feel fully ready."],
+["English","Productivity","Your best work appears when you remove friction and begin simply."],
+["English","Career","A career grows through trust, skill, and calm consistency."],
+["English","Health","Your health is shaped by the small choices you repeat."],
+["English","Relationships","You build stronger relationships by listening with patience."],
+["English","Personal growth","Growth is not a dramatic leap; it is a series of disciplined steps."],
+["English","Peace and mindfulness","Rest is not laziness; it is part of good work."],
+["Hindi","Motivation","एक सही कदम भी सही दिशा की शुरुआत करता है।"],
+["Hindi","Confidence","आत्मविश्वास तब बढ़ता है जब आप डर के बावजूद आगे बढ़ते हैं।"],
+["Hindi","Productivity","सफलता का आधार सरल शुरुआत और लगातार काम है।"],
+["Marathi","Motivation","लहान पाऊलही पुढील यशाची सुरुवात असते."],
+["Marathi","Confidence","तुमचा आत्मविश्वास तुमच्या कृतीतून बनतो."],
+["Marathi","Personal growth","विकास हा एक झटका नाही; तो सतत घेतलेले छोटे निर्णय आहेत."],
+["English","Business","Focus on useful work, not the noise that keeps you busy."],
+["English","Study","You learn more when you keep promises to your future self."],
+["English","Hope","Some of your strongest progress begins after the hardest season."],
+["Hindi","Hope","कभी-कभी सबसे बड़ा विकास सबसे मुश्किल समय के बाद शुरू होता है।"],
+["Marathi","Hope","कठीण काळानंतरच खऱ्या बदलाची सुरुवात होऊ शकते."],
+["English","Peace and mindfulness","Breathe slowly. The next step will still be there when you are ready."],
+["Hindi","Peace and mindfulness","धीरे-धीरे श्वास लो; अगला कदम तब भी उपलब्ध होगा जब तुम तैयार हो."],
+["Marathi","Peace and mindfulness","हळूहळू श्वास घ्या; पुढचा पाऊल तुमच्या तयारीसाठी अद्याप उपलब्ध असेल."],
+["English","Success","Small visible efforts are often the beginning of a larger future."],
+["Hindi","Success","छोटी, दिखाई देने वाली मेहनतें अक्सर बड़े भविष्य की शुरुआत होती हैं।"],
+["Marathi","Success","छोटे, दिसणारे प्रयत्न अनेकदा मोठ्या भविष्याची सुरुवात असतात."],
+["English","Personal growth","You are not behind. You are becoming."],
+["Hindi","Personal growth","तुम्हें पीछे नहीं रहना है; तुम्हें बनना है।"],
+["Marathi","Personal growth","तुम्हाला मागे रहायचे नाही; तुम्हाला तयार व्हायचे आहे."],
+["English","Confidence","Your courage does not need to be loud to be real."],
+["Hindi","Confidence","तुम्हारा साहस ज़ोर से बोलने जैसा जरूरी नहीं है; वह वास्तविक है।"],
+["Marathi","Confidence","तुमची धैर्यशक्ति मोठ्या आवाजासारखी आवश्यक नाही; ती खरी आहे."],
+["English","Motivation","The next right move is enough for today."],
+["Hindi","Motivation","आज के लिए अगला सही कदम ही पर्याप्त है।"],
+["Marathi","Motivation","आजासाठी फक्त पुढचा योग्य पाऊल पुरेसे आहे."],
+["English","Productivity","Do the next useful thing, not the whole mountain."],
+["Hindi","Productivity","सभी पर्वत एक साथ नहीं उठाना है; अगला उपयोगी काम करें।"],
+["Marathi","Productivity","सर्व डोंगर एकाच वेळी उचलायचे नाहीत; फक्त पुढचे उपयोगी काम करा."],
+["English","Relationships","A thoughtful message can repair more than a long explanation."],
+["Hindi","Relationships","एक विचारशील संदेश लंबी व्याख्या से अधिक उपयोगी हो सकता है।"],
+["Marathi","Relationships","एक विचारशील संदेश जास्त स्पष्टीकरणांपेक्षा अधिक उपयोगी ठरू शकतो."],
+["English","Career","Your future competence is being built in the work you do today."],
+["Hindi","Career","तुम्हारा भविष्य आज के काम में बन रहा है।"],
+["Marathi","Career","तुमचा भविष्य आजच्या कामात तयार होत आहे."],
+["English","Study","Learning is a return on attention, not a burst of pressure."],
+["Hindi","Study","सीखना दबाव की लहर नहीं, ध्यान की वापसी है।"],
+["Marathi","Study","शिकणे दाबाची लाट नव्हे; लक्ष देण्याची परतफेड आहे."],
+["English","Business","Your reputation grows from reliability, not noise."],
+["Hindi","Business","तुम्हारी छवि शोर से नहीं, विश्वसनीयता से बनती है।"],
+["Marathi","Business","तुमचा आदर आवाजेने नव्हे; विश्वासार्हतेने वाढतो."],
+["English","Health","A steady routine can be kinder than a dramatic reset."],
+["Hindi","Health","एक स्थिर दिनचर्या तेढ़े बदलाव से अधिक दयालु होती है।"],
+["Marathi","Health","स्थिर दिनचर्या जोरदार बदलांपेक्षा अधिक दयाळू असू शकते."],
+["English","Peace and mindfulness","Pause long enough to notice what is already working."],
+["Hindi","Peace and mindfulness","इतना रुकें कि पता चले क्या पहले से सही चल रहा है।"],
+["Marathi","Peace and mindfulness","इतके थांबा की समजेल काय आधीपासून चांगले चालले आहे."],
+["English","Confidence","Progress builds confidence more than confidence builds progress."],
+["Hindi","Confidence","प्रगति आत्मविश्वास को अधिक बनाती है, आत्मविश्वास प्रगति को नहीं।"],
+["Marathi","Confidence","प्रगती आत्मविश्वास वाढवते; आत्मविश्वास प्रगती बनवत नाही."],
+["English","Self-discipline","Discipline is choosing your better future before your feelings argue with you."],
+["Hindi","Self-discipline","अनुशासन का अर्थ है कि भावनाएँ तर्क करें उससे पहले अपने बेहतर भविष्य का चुनाव करना।"],
+["Marathi","Self-discipline","शिस्त म्हणजे भावनांना तर्क द्यायला देण्यापूर्वी तुमचा चांगला भविष्य निवडणे."],
+["English","Hope","What feels heavy today is not always the whole story."],
+["Hindi","Hope","आज जो भारी लग रहा है, वह हमेशा पूरी कहानी नहीं है।"],
+["Marathi","Hope","आज जे भारी वाटत आहे, ते नेहमी संपूर्ण कथा नसते."],
+["English","Motivation","Action is the proof that your intention is real."],
+["Hindi","Motivation","कर्म ही यह दिखाता है कि इरादा सच है।"],
+["Marathi","Motivation","कृती हेच दाखवते की निश्चय खरी आहे."],
+["English","Productivity","Small, clean wins are more sustainable than giant dramatic effort."],
+["Hindi","Productivity","छोटे, साफ़ जीतें बड़े, दिखावटी प्रयास से अधिक टिकाऊ होती हैं।"],
+["Marathi","Productivity","लहान, स्वच्छ विजय हे मोठ्या, भडक प्रयत्नांपेक्षा टिकाऊ असतात."],
+["English","Relationships","A stable relationship is built by the care you repeat."],
+["Hindi","Relationships","स्थिर रिश्ता बार-बार दिखाए जाने वाले प्रेम से बनता है।"],
+["Marathi","Relationships","स्थिर नातं वारंवार दाखवलेले प्रेम वाढवते."],
+["English","Career","Keep learning in public, even when you are still becoming skilled."],
+["Hindi","Career","तभी सीखते रहिए जब आप अभी भी सीख रहे हों।"],
+["Marathi","Career","तुम्ही अजून शिकत असताना सार्वजनिकरित्या शिकत रहा."],
+["English","Study","The goal is not to feel ready. The goal is to become ready."],
+["Hindi","Study","लक्ष्य यह नहीं है कि खुद को तैयार महसूस करें; लक्ष्य यह है कि तैयार बन जाएँ।"],
+["Marathi","Study","लक्ष्य हे नाही की स्वतःला तयार वाटेल; लक्ष्य हे आहे की तयार व्हावे."],
+["English","Success","You do not need perfect timing; you need a repeatable next step."],
+["Hindi","Success","तुम्हें सही समय नहीं चाहिए; तुम्हें दोहराने योग्य अगला कदम चाहिए।"],
+["Marathi","Success","तुम्हाला परिपूर्ण वेळ हवी नाही; हवी आहे पुन्हा पुन्हा घेता येणारी पुढची पायरी."],
+["English","Peace and mindfulness","Stillness is not emptiness; it is preparation."],
+["Hindi","Peace and mindfulness","शांत रहना खालीपन नहीं है; यह तैयारी है।"],
+["Marathi","Peace and mindfulness","स्थिर राहणे रिकामेपणा नाही; ते तयारी आहे."],
+["English","Personal growth","Keep becoming the person who can hold the life you want."],
+["Hindi","Personal growth","तुम्हारी इच्छित जिंदगी को संभालने वाले व्यक्ति में बदलते रहो।"],
+["Marathi","Personal growth","तुमच्या इच्छित जीवनाला सांभाळू शकणाऱ्या व्यक्तिमत्त्वात विकसित राहा."],
+["English","Confidence","Self-trust grows when you honor your effort, even on small days."],
+["Hindi","Confidence","स्व-विश्वास तब बढ़ता है जब आप छोटी दिनचर्या में भी अपने प्रयास का सम्मान करते हैं।"],
+["Marathi","Confidence","स्वतःवर विश्वास वाढतो जेव्हा आपण लहान दिवसांमध्येही आपल्या प्रयत्नांचा आदर करतो."],
+["English","Motivation","One useful action is better than fifteen perfect intentions."],
+["Hindi","Motivation","पंद्रह परिपूर्ण इरादों से एक उपयोगी काम ज़्यादा मूल्यवान है।"],
+["Marathi","Motivation","पंधरा परिपूर्ण निश्चयांपेक्षा एक उपयोगी काम अधिक मौल्यवान असते."],
+["English","Productivity","Finish what matters, then let the rest wait."],
+["Hindi","Productivity","जो महत्वपूर्ण है उसे पूरा करें; बाकी बाद में प्रतीक्षा करने दे।"],
+["Marathi","Productivity","ज्याला महत्त्व आहे, ते पूर्ण करा; बाकीचे नंतर राहू द्या."],
+["English","Relationships","The best conversations often feel easy because they are honest."],
+["Hindi","Relationships","सबसे अच्छे संवाद अक्सर सहज लगते हैं क्योंकि वे ईमानदार होते हैं।"],
+["Marathi","Relationships","सर्वात चांगले संभाषण अनेकदा सोपे वाटतात कारण ते प्रामाणिक असतात."],
+["English","Career","Good work compounds, even when you do not notice it immediately."],
+["Hindi","Career","अच्छा काम तब भी जमा होता है जब आप उसे तुरंत न देखें।"],
+["Marathi","Career","चांगले काम तेव्हा देखील जमा होते जेव्हा तुम्हाला लगे की ते लगे नाही."],
+["English","Study","A calm brain learns faster than a frantic one."],
+["Hindi","Study","शांत मन अधिक जल्दी सीखता है, घबराया मन नहीं।"],
+["Marathi","Study","शांत मन अधिक वेगाने शिकते, घबराटीचा मन नाही."],
+["English","Business","Make decisions that serve your long-term direction, not short-term pressure."],
+["Hindi","Business","ऐसे निर्णय लें जो आपके दीर्घकालिक रास्ते की सेवा करें, कम समय के दबाव के लिए नहीं।"],
+["Marathi","Business","अशा निर्णय घ्या जे तुमच्या दीर्घकालीन दिशेची सेवा करतील, अल्पकालीन दवाबासाठी नाही."],
+["English","Health","Your habitual energy is built by what you do most days."],
+["Hindi","Health","तुम्हारी आदतों वाली ऊर्जा ज्योति सबसे अधिक दिनों में तुम्हारे द्वारा किए गए काम से बनती है।"],
+["Marathi","Health","तुमची सवयीची ऊर्जा बहुतेक दिवसांत केलेल्या कामांमुळे तयार होते."],
+["English","Success","The quiet act of consistency is often the most overlooked success strategy."],
+["Hindi","Success","शांत निरंतरता अक्सर सबसे कम पहचानी जाने वाली सफलता की रणनीति होती है।"],
+["Marathi","Success","शांत सततता अनेकदा सर्वात कमी ओळखली जाणारी यश रणनीती असते."],
+["English","Hope","You are allowed to be in progress without being finished."],
+["Hindi","Hope","तुम्हें प्रगति में रहने की अनुमति है बिना समाप्त हुए।"],
+["Marathi","Hope","तुम्हाला समाप्त न झालेल्या अवस्थेत प्रगती करण्याची परवानगी आहे."],
+["English","Peace and mindfulness","Your nervous system deserves kindness before urgency."],
+["Hindi","Peace and mindfulness","तुम्हारा तंत्रिका तंत्र तुरंतता से पहले दया का हकदार है।"],
+["Marathi","Peace and mindfulness","तुमची तंत्रिका व्यवस्था ताबडतोब से पहले दया हक्काची आहे."],
+["English","Personal growth","You become stronger when you keep showing up honestly."],
+["Hindi","Personal growth","आप मजबूत होते हैं जब आप ईमानदारी से फिर से उपस्थित होते हैं।"],
+["Marathi","Personal growth","तुम्ही ईमानदारीने पुन्हा उपस्थित राहिल्यावर मजबूत होत जा."],
+["English","Confidence","Small brave choices create the confidence you want."],
+["Hindi","Confidence","छोटे साहसी चुनाव वह आत्मविश्वास बनाते हैं जो आप चाहते हैं।"],
+["Marathi","Confidence","लहान धैर्यशाली निर्णय तुम्हाला हवे असलेला आत्मविश्वास बनवतात."],
+["English","Motivation","Choose the next move that makes your future easier."],
+["Hindi","Motivation","अगला ऐसा कदम चुनें जो आपके भविष्य को आसान बनाए।"],
+["Marathi","Motivation","पुढचा असा पाऊल निवडा जो तुमच्या भविष्याला सोपे बनवेल."],
+["English","Productivity","Clarity is often the first unlock of momentum."],
+["Hindi","Productivity","स्पष्टता अक्सर गति का पहला ताला खोलने वाला कदम होती है।"],
+["Marathi","Productivity","स्पष्टता अनेकदा गतीचा पहिला कुलूप उघडणारा पाऊल असते."],
+["English","Relationships","Care that is consistent is more powerful than care that is dramatic."],
+["Hindi","Relationships","लगातार दिखाया गया प्रेम भड़काऊ प्रेम से अधिक शक्तिशाली होता है।"],
+["Marathi","Relationships","नियमित दाखवलेले प्रेम भडक प्रेमापेक्षा अधिक शक्तिशाली असते."],
+["English","Career","Build trust slowly and your future will carry more weight."],
+["Hindi","Career","विश्वास धीरे बनाइए; आपका भविष्य उससे अधिक मजबूत होगा।"],
+["Marathi","Career","विश्वास हळूहळू तयार करा; तुमचा भविष्य तदनुसार अधिक मजबूत होईल."],
+["English","Study","Your future self is waiting for the discipline you can practice now."],
+["Hindi","Study","तुम्हारा भविष्य तुम्हारे वर्तमान अनुशासन का इन्तज़ार कर रहा है।"],
+["Marathi","Study","तुमचा भविष्य तुमच्या सध्याच्या शिस्तेचा प्रतीक्षा करत आहे."],
+["English","Business","Useful work usually wins over impressive noise."],
+["Hindi","Business","उपयोगी काम अक्सर प्रभावशाली शोर से अधिक जीतता है।"],
+["Marathi","Business","उपयोगी काम अनेकदा प्रभावशाली आवाजेपेक्षा जिंकते."],
+["English","Health","The body responds well when you stop fighting yourself."],
+["Hindi","Health","शरीर तब बेहतर प्रतिक्रिया देता है जब आप खुद से लड़ना बंद करते हैं।"],
+["Marathi","Health","शरीर चांगली प्रतिक्रिया देतो जेव्हा आपण स्वतःशी लढाई थांबवतो."],
+["English","Peace and mindfulness","A quiet mind often notices what a rushed one misses."],
+["Hindi","Peace and mindfulness","शांत मन अक्सर वह देखता है जो जल्दी में छूट जाता है।"],
+["Marathi","Peace and mindfulness","शांत मन अनेकदा ते पाहते जे धावपळीमध्ये सुटते."],
+["English","Personal growth","The life you want is built by the habits you repeat when no one is watching."],
+["Hindi","Personal growth","तुम्हारी इच्छित जिंदगी उन आदत���ं से बनती है जिन्हें तुम तब दोहराते हो जब कोई देख नहीं रहा होता।"],
+["Marathi","Personal growth","तुमचे इच्छित जीवन त्या सवयींनी बनते जेव्हा कोणी पाहत नाही तेव्हा आपण पुन्हा पुन्हा करतो."],
+["English","Success","Your next success may be smaller than your ambition, but it is still a step forward."],
+["Hindi","Success","तुम्हारा अगला सफलता छोटा भी हो सकता है, पर वह अभी भी आगे बढ़ने का कदम है।"],
+["Marathi","Success","तुमचे पुढील यश हे मोठ्या आकांक्षेपेक्षा लहानही असू शकते, पण ते पुढे जाणारा पाऊल आहे."],
+["English","Hope","A better tomorrow usually begins with one brave, boring action today."],
+["Hindi","Hope","एक बेहतर कल अक्सर आज के एक साहसी, साधारण कदम से शुरू होता है।"],
+["Marathi","Hope","चांगला उद्या अनेकदा आजच्या एक धैर्यवान, उबग आणणाऱ्या पावलावरून सुरू होतो."],
+["English","Motivation","You are allowed to move one step at a time."],
+["Hindi","Motivation","तुम्हें एक कदम एक कदम चलने की अनुमति है।"],
+["Marathi","Motivation","तुम्हाला फक्त एक पाऊल एक पाऊल पुढे जाण्याची परवानगी आहे."],
+["English","Productivity","If it matters, do it before the day becomes noise."],
+["Hindi","Productivity","अगर यह महत्वपूर्ण है, तो दिन शोर बनने से पहले करें।"],
+["Marathi","Productivity","जर ते महत्त्वाचे असेल, तर दिवस आवाज बनण्यापूर्वी करा."],
+["English","Relationships","Care grows when it is returned with patience."],
+["Hindi","Relationships","दया तब बढ़ती है जब उसे धैर्य से वापस दिया जाता है।"],
+["Marathi","Relationships","दया वाढते जेव्हा ती धैर्याने परत दिली जाते."],
+["English","Career","The work you keep doing well becomes your reputation."],
+["Hindi","Career","जो काम आप सही ढंग से करते रहते हैं, वही आपकी प्रतिष्ठा बनता है।"],
+["Marathi","Career","ज्याचं काम तुम्ही चांगल्या पद्धतीने करत राहता, तेच तुमचा आदर बनते."],
+["English","Study","You do not need to master everything today. Just keep progressing."],
+["Hindi","Study","आज सब कुछ सीखने की ज़रूरत नहीं है; बस आगे बढ़ते रहिए।"],
+["Marathi","Study","आज सर्व काही शिकणे आवश्यक नाही; फक्त पुढे जात रहा."],
+["English","Health","Building strength is easier when you stop chasing perfection."],
+["Hindi","Health","परफेक्शन की दौड़ छोड़ देने पर ताकत बनाना आसान होता है।"],
+["Marathi","Health","परफेक्शनच्या शर्यतीतून थांबल्यावर ताकद तयार करणे सोपे होते."],
+["English","Peace and mindfulness","You do not have to earn calm by doing everything first."],
+["Hindi","Peace and mindfulness","तुम्हें सब कुछ पहले करके शांत होने का हक नहीं है।"],
+["Marathi","Peace and mindfulness","तुम्हाला सर्व काही प्रथम करून शांत होण्याचा हक्क नाही."],
+["English","Personal growth","The person you become is built in the choices you keep making."],
+["Hindi","Personal growth","तुम्हारे बनते व्यक्ति का निर्माण उन चुनावों से होता है जिन्हें तुम बार-बार करते हो।"],
+["Marathi","Personal growth","तुम्ही बनत असलेले व्यक्तिमत्व त्या निवडींमधून तयार होते जे तुम्ही पुनःपुन्हा करता."],
+["English","Confidence","Your best next step is usually simpler than your worst fear."],
+["Hindi","Confidence","तुम्हारा सबसे सही अगला कदम अक्सर तुम्हारे सबसे बड़े डर से सरल होता है।"],
+["Marathi","Confidence","तुमचा सर्वोत्तम पुढचा पाऊल अनेकदा तुमच्या सर्वात मोठ्या भीतीपेक्षा सोपा असतो."],
+["English","Motivation","Momentum is built by starting, not by waiting to feel ready."],
+["Hindi","Motivation","गति शुरू करने से बनती है, तैयार महसूस करने से नहीं।"],
+["Marathi","Motivation","गतीची सुरुवात तयार वाटण्यावरून नाही; सुरू होण्यावरून होते."],
+["English","Productivity","What matters most is often what you can finish today."],
+["Hindi","Productivity","सबसे महत्वपूर्ण अक्सर वही है जिसे आप आज पूरा कर सकते हैं।"],
+["Marathi","Productivity","सर्वात महत्त्वाचे बहुतेक तेच आहे जे तुम्ही आज पूर्ण करू शकता."],
+["English","Relationships","Real care shows up in the way you keep showing up."],
+["Hindi","Relationships","असली देखभाल उस तरीके से दिखती है जिससे आप फिर से उपस्थित रहते हैं।"],
+["Marathi","Relationships","असली काळजी त्या पद्धतीने दिसते ज्यांनी आपण पुन्हा पुन्हा उपस्थित राहतो."],
+["English","Career","Your consistency is more valuable than your occasional burst."],
+["Hindi","Career","तुम्हारी निरंतरता तुम्हारे अस्थायी उभार से अधिक मूल्यवान है।"],
+["Marathi","Career","तुमची सततता तुमच्या काही वेळच्या उष्णतेपेक्षा अधिक मौल्यवान आहे."],
+["English","Study","The learning you repeat becomes the skill you trust."],
+["Hindi","Study","जो सीख आप दोहराते हैं, वही कौशल आप पर भरोसा बनता है।"],
+["Marathi","Study","ज्या शिकण्याची तुम्ही पुनरावृत्ती करता, तीच कौशल्य तुम्हाला विश्वास देत जाते."],
+["English","Business","Good business decisions reduce noise and increase clarity."],
+["Hindi","Business","अच्छे ব্যবসाई निर्णय शोर घटाते हैं और स्पष्टता बढ़ाते हैं।"],
+["Marathi","Business","चांगले व्यावसायिक निर्णय आवाज कमी करतात आणि स्पष्टता वाढवतात."],
+["English","Health","A strong day often begins with one gentle routine."],
+["Hindi","Health","एक मजबूत दिन अक्सर एक कोमल दिनचर्या से शुरू होता है।"],
+["Marathi","Health","चांगला दिवस अनेकदा एक कोमल दिनचर्येपासून सुरू होतो."],
+["English","Success","What you can repeat repeatedly is what you can truly build."],
+["Hindi","Success","जो आप बार-बार दोहरा सकते हैं, वही आप वास्तव में बना सकते हैं।"],
+["Marathi","Success","जे तुम्ही पुनःपुन्हा करू शकता, तेच तुम्ही खरंच तयार करू शकता."],
+["English","Hope","Hope is not denial. It is a disciplined kind of trust."],
+["Hindi","Hope","आशा इनकार नहीं है; यह अनुशासित प्रकार का विश्वास है।"],
+["Marathi","Hope","आशा नकार नाही; ती शिस्तबद्ध प्रकारचा विश्वास आहे."],
+["English","Personal growth","Your future becomes clearer when you treat today as training."],
+["Hindi","Personal growth","आपका भविष्य तब स्पष्ट होता है जब आप आज को प्रशिक्षण मानते हैं।"],
+["Marathi","Personal growth","तुमचा भविष्य स्पष्ट होतो जेव्हा तुम्ही आजला प्रशिक्षण मानता."],
+["English","Peace and mindfulness","Make room for calm. It is not a luxury; it is leverage."],
+["Hindi","Peace and mindfulness","शांति के लिए जगह बनाइए; यह विलासिता नहीं, लाभ है।"],
+["Marathi","Peace and mindfulness","शांतीसाठी जागा बनवा; हे विलास नाही, लाभ आहे."],
+["English","Self-discipline","Discipline is not punishment. It is trust in your future self."],
+["Hindi","Self-discipline","अनुशासन दंड नहीं है; यह आपके भविष्य के आप पर भरोसा है।"],
+["Marathi","Self-discipline","शिस्त शिक्षा नाही; ती तुमच्या भविष्याच्या स्वतःवर विश्वास आहे."],
+["English","Motivation","Your effort matters more than your mood."],
+["Hindi","Motivation","तुम्हारी भावना से अधिक महत्वपूर्ण तुम्हारा प्रयास है।"],
+["Marathi","Motivation","तुमच्या मनस्थितीपेक्षा तुमची मेहनत महत्त्वाची असते."],
+["English","Productivity","Focus on completion, not endless preparation."],
+["Hindi","Productivity","सिद्धि पर ध्यान दें, असीम तैयारी पर नहीं।"],
+["Marathi","Productivity","पूर्णतेवर लक्ष द्या, न संपणाऱ्या तयारीवर नाही."],
+["English","Relationships","The strongest relationships are built from steady care."],
+["Hindi","Relationships","सबसे मजबूत रिश्ते निरंतर देखभाल से बनते हैं।"],
+["Marathi","Relationships","सर्वात मजबूत नाते सतत काळजीतून तयार होतात."],
+["English","Career","You are building your future by how you work today."],
+["Hindi","Career","आप अपने भविष्य का निर्माण आज के तरीके से कर रहे हैं।"],
+["Marathi","Career","तुम्ही आजच्या कामाच्या पद्धतीमुळे तुमचा भविष्य तयार करत आहात."],
+["English","Study","Every focused effort adds up to future advantage."],
+["Hindi","Study","हर ध्यान केंद्रित प्रयास भविष्य में लाभ बनता है।"],
+["Marathi","Study","प्रत्येक लक्ष केंद्रित प्रयत्न भविष्यात फायदा बनतो."],
+["English","Health","Consistency is kinder to your body than intensity is to your nervous system."],
+["Hindi","Health","निरंतरता आपकी शारीरिक स्थिति के लिए अधिक दयालु है, तीव्रता आपकी तंत्रिका प्रणाली के लिए नहीं।"],
+["Marathi","Health","सततता तुमच्या शरीरासाठी अधिक दयाळू असते, तीव्रता तुमच्या तंत्रिकेच्या व्यवस्थेसाठी नाही."],
+["English","Success","Sustainable success is rarely dramatic at the start."],
+["Hindi","Success","टिकाऊ सफलता शुरुआत में अक्सर शानदार नहीं होती।"],
+["Marathi","Success","टिकाऊ यश सुरुवातीला अनेकदा भडक नसते."],
+["English","Hope","Even a small improvement is proof that the story is still moving."],
+["Hindi","Hope","छोटी सी बेहतर में भी यह प्रमाण है कि कहानी अभी भी आगे बढ़ रही है।"],
+["Marathi","Hope","काही लहान सुधारही हे दाखवतो की कथा अद्याप पुढे जात आहे."],
+["English","Personal growth","Be patient with the process. You are still in formation."],
+["Hindi","Personal growth","प्रक्रिया के साथ धैर्य रखें; आप अभी निर्माण में हैं।"],
+["Marathi","Personal growth","प्रक्रियेशी धैर्य ठेवा; तुम्ही अजून तयार होत आहात."],
+["English","Confidence","Confidence is not the absence of fear. It is action despite it."],
+["Hindi","Confidence","आत्मविश्वास डर का अभाव नहीं है; यह डर के बावजूद कार्य करना है।"],
+["Marathi","Confidence","आत्मविश्वास भीत्प्रतिबंध नाही; हे भीतीवरही कृती करणे आहे."],
+["English","Motivation","The strongest momentum begins with a humble start."],
+["Hindi","Motivation","सबसे मजबूत गति विनम्र शुरुआत से शुरू होती है।"],
+["Marathi","Motivation","सर्वात मजबूत गती विनम्र सुरुवातीतून सुरू होते."],
+["English","Productivity","Finish first, impress later."],
+["Hindi","Productivity","पहले पूरा करें, बाद में प्रभावित करें।"],
+["Marathi","Productivity","प्रथम पूर्ण करा, नंतर प्रभावित करा."]
 ];
-
 const $=id=>document.getElementById(id);
 const saved=JSON.parse(localStorage.getItem("mmd_saved")||"[]");
 const community=JSON.parse(localStorage.getItem("mmd_community")||"[]");
 let idx=0;
 
+function normalizePrefs(raw){
+  const defaults={notificationsEnabled:false,frequency:'OFF',selectedCategories:[...cats],selectedTimePeriods:[...notifPeriodLabels],selectedLanguages:['English','Hindi','Marathi'],quietHoursEnabled:true,quietHoursStart:'22:00',quietHoursEnd:'07:00',recentlyDeliveredQuoteIds:[],lastNotificationTimestamp:0};
+  const parsed=raw?JSON.parse(raw):{};
+  return {...defaults,...parsed,selectedCategories:Array.isArray(parsed.selectedCategories)&&parsed.selectedCategories.length?parsed.selectedCategories:[...cats],selectedTimePeriods:Array.isArray(parsed.selectedTimePeriods)&&parsed.selectedTimePeriods.length?parsed.selectedTimePeriods:[...notifPeriodLabels],selectedLanguages:Array.isArray(parsed.selectedLanguages)&&parsed.selectedLanguages.length?parsed.selectedLanguages:['English','Hindi','Marathi'],quietHoursStart:parsed.quietHoursStart||'22:00',quietHoursEnd:parsed.quietHoursEnd||'07:00',recentlyDeliveredQuoteIds:Array.isArray(parsed.recentlyDeliveredQuoteIds)?parsed.recentlyDeliveredQuoteIds:[],lastNotificationTimestamp:parsed.lastNotificationTimestamp||0};
+}
+function getNotifPrefs(){
+  const raw = localStorage.getItem('mmd_notification_prefs');
+  return normalizePrefs(raw);
+}
+function saveNotifPrefs(prefs){
+  localStorage.setItem('mmd_notification_prefs', JSON.stringify(prefs));
+  if (typeof AndroidNotificationBridge !== 'undefined') {
+    try { AndroidNotificationBridge.saveNotificationPreferences(JSON.stringify(prefs)); } catch (e) {}
+  }
+}
+function renderNotifChips(){
+  $('notifCategories').innerHTML = cats.map(cat => `<label class="notif-chip"><input class="notif-category-input" type="checkbox" value="${cat}"><span>${cat}</span></label>`).join('');
+  $('notifTimePeriods').innerHTML = notifPeriodLabels.map(period => `<label class="notif-chip"><input class="notif-time-input" type="checkbox" value="${period}"><span>${period}</span></label>`).join('');
+}
+function applyNotifFormValues(prefs){
+  $('notifEnabled').checked = !!prefs.notificationsEnabled;
+  $('notifFrequency').value = prefs.frequency || 'OFF';
+  $('notifQuietEnabled').checked = !!prefs.quietHoursEnabled;
+  $('notifQuietStart').value = prefs.quietHoursStart || '22:00';
+  $('notifQuietEnd').value = prefs.quietHoursEnd || '07:00';
+
+  document.querySelectorAll('.notif-category-input').forEach(input => {
+    input.checked = (prefs.selectedCategories || []).includes(input.value);
+  });
+  document.querySelectorAll('.notif-time-input').forEach(input => {
+    input.checked = (prefs.selectedTimePeriods || []).includes(input.value);
+  });
+}
+function updateNotificationStatus(){
+  const prefs = getNotifPrefs();
+  const enabled = !!prefs.notificationsEnabled;
+  const frequency = prefs.frequency || 'OFF';
+  const labels = {'OFF':'Notifications are off','1/day':'On · 1/day','2/day':'On · 2/day','4/day':'On · 4/day','2h':'On · every 2 hours','1h':'On · every 1 hour'};
+  $('notifStatus').textContent = labels[frequency] || 'Notifications are off';
+  if (!enabled) $('notifStatus').textContent = 'Notifications are off';
+  $('notifEnabled').checked = enabled;
+  $('notifFrequency').value = enabled ? frequency : 'OFF';
+  $('notifQuietEnabled').checked = !!prefs.quietHoursEnabled;
+  $('notifQuietStart').value = prefs.quietHoursStart || '22:00';
+  $('notifQuietEnd').value = prefs.quietHoursEnd || '07:00';
+  applyNotifFormValues(prefs);
+}
+function buildNotificationPrefsFromForm(){
+  const prefs = getNotifPrefs();
+  prefs.notificationsEnabled = $('notifEnabled').checked;
+  prefs.frequency = $('notifFrequency').value || 'OFF';
+  prefs.quietHoursEnabled = $('notifQuietEnabled').checked;
+  prefs.quietHoursStart = $('notifQuietStart').value || '22:00';
+  prefs.quietHoursEnd = $('notifQuietEnd').value || '07:00';
+  prefs.selectedCategories = [...document.querySelectorAll('.notif-category-input:checked')].map(el => el.value);
+  prefs.selectedTimePeriods = [...document.querySelectorAll('.notif-time-input:checked')].map(el => el.value);
+  if (!prefs.selectedCategories.length) prefs.selectedCategories = [...cats];
+  if (!prefs.selectedTimePeriods.length) prefs.selectedTimePeriods = [...notifPeriodLabels];
+  return prefs;
+}
+function requestNotificationPermissionIfNeeded(){
+  if (typeof AndroidNotificationBridge !== 'undefined') {
+    try {
+      AndroidNotificationBridge.requestNotificationPermission();
+    } catch (e) {}
+  }
+}
+function showNotificationPreview(){
+  const box=$('notifPreview');
+  const prefs=getNotifPrefs();
+  const selection = messages.filter(m => (prefs.selectedLanguages||['English','Hindi','Marathi']).includes(m[0]) && (prefs.selectedCategories||cats).includes(m[1]));
+  const chosen = selection.length ? selection[Math.floor(Math.random()*selection.length)] : messages[Math.floor(Math.random()*messages.length)];
+  $('notifPreviewText').textContent = chosen[2];
+  box.style.display='block';
+  clearTimeout(window.mmdPreviewTimer);
+  window.mmdPreviewTimer=setTimeout(()=>box.style.display='none',6000);
+}
+function initNotifications(){
+  renderNotifChips();
+  updateNotificationStatus();
+  $('notifSettings').onclick=()=>{updateNotificationStatus();$('notifModal').classList.add('open')};
+  $('notifClose').onclick=()=>$('notifModal').classList.remove('open');
+  $('testNotif').onclick=()=>{
+    const prefs = buildNotificationPrefsFromForm();
+    saveNotifPrefs(prefs);
+    if (typeof AndroidNotificationBridge !== 'undefined') {
+      try {
+        AndroidNotificationBridge.triggerTestNotification();
+      } catch (e) {
+        showNotificationPreview();
+      }
+    } else {
+      showNotificationPreview();
+    }
+  };
+  $('notifPreviewClose').onclick=()=>$('notifPreview').style.display='none';
+  $('saveNotif').onclick=()=>{
+    const prefs = buildNotificationPrefsFromForm();
+    saveNotifPrefs(prefs);
+    if (prefs.notificationsEnabled && typeof AndroidNotificationBridge !== 'undefined') {
+      requestNotificationPermissionIfNeeded();
+    }
+    updateNotificationStatus();
+    $('notifModal').classList.remove('open');
+    toast(prefs.notificationsEnabled ? `Daily notifications saved (${prefs.frequency})` : 'Notifications turned off');
+  };
+}
+
 function fill(){
-  $("lang").innerHTML=["All","English","Hindi","Marathi"].map(x=>`<option>${x}</option>`).join("");
-  $("cat").innerHTML=["All",...cats].map(x=>`<option>${x}</option>`).join("");
-  $("cCat").innerHTML=cats.map(x=>`<option>${x}</option>`).join("");
+  $('lang').innerHTML=['All','English','Hindi','Marathi'].map(x=>`<option>${x}</option>`).join('');
+  $('cat').innerHTML=['All',...cats].map(x=>`<option>${x}</option>`).join('');
+  $('cCat').innerHTML=cats.map(x=>`<option>${x}</option>`).join('');
 }
 function pool(){
-  return messages.filter(m=>($("lang").value==="All"||m[0]===$("lang").value)&&($("cat").value==="All"||m[1]===$("cat").value));
+  return messages.filter(m=>($('lang').value==='All'||m[0]===$('lang').value)&&($('cat').value==='All'||m[1]===$('cat').value));
 }
 function render(){
-  const p=pool(); if(!p.length){$("message").textContent="No message matches these filters yet.";return}
+  const p=pool(); if(!p.length){$('message').textContent='No message matches these filters yet.';return}
   if(idx>=p.length)idx=0; const m=p[idx];
-  $("message").textContent=m[2];$("langPill").textContent=m[0];$("catPill").textContent=m[1];
-  $("save").textContent=saved.some(x=>x[2]===m[2])?"♥ Saved":"♡ Save";
+  $('message').textContent=m[2];$('langPill').textContent=m[0];$('catPill').textContent=m[1];
+  $('save').textContent=saved.some(x=>x[2]===m[2])?'♥ Saved':'♡ Save';
   renderSaved();renderCommunity();
 }
 function renderSaved(){
-  $("saved").innerHTML=saved.length?saved.slice().reverse().map((m,i)=>`<div class="card"><p>${esc(m[2])}</p><div class="small">${esc(m[0])} · ${esc(m[1])}</div></div>`).join(""):'<div class="empty">No saved messages yet.</div>';
+  $('saved').innerHTML=saved.length?saved.slice().reverse().map((m,i)=>`<div class="card"><p>${esc(m[2])}</p><div class="small">${esc(m[0])} · ${esc(m[1])}</div></div>`).join(''):'<div class="empty">No saved quotes yet.</div>';
 }
 function renderCommunity(){
-  $("community").innerHTML=community.length?community.slice().reverse().map(x=>`<div class="card"><p>${esc(x.message)}</p><div class="small">${esc(x.name||"Anonymous")} · ${esc(x.language)} · ${esc(x.category)} · Pending review</div></div>`).join(""):'<div class="empty">Be the first to share an original thought.</div>';
+  $('community').innerHTML=community.length?community.slice().reverse().map(x=>`<div class="card"><p>${esc(x.message)}</p><div class="small">${esc(x.name||'Anonymous')} · ${esc(x.language)} · ${esc(x.category)}</div></div>`).join(''):'<div class="empty">No community thoughts yet.</div>';
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function toast(t){$("toast").textContent=t;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",1800)}
+function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1800)}
 
-$("next").onclick=()=>{idx++;render()};
-$("lang").onchange=()=>{idx=0;render()};
-$("cat").onchange=()=>{idx=0;render()};
-$("save").onclick=()=>{
- const p=pool()[idx]; if(!p)return;
- const i=saved.findIndex(x=>x[2]===p[2]); if(i>=0)saved.splice(i,1); else saved.push(p);
- localStorage.setItem("mmd_saved",JSON.stringify(saved));render();toast(i>=0?"Removed from saved":"Saved");
+$('next').onclick=()=>{idx++;render()};
+$('lang').onchange=()=>{idx=0;render()};
+$('cat').onchange=()=>{idx=0;render()};
+$('save').onclick=()=>{
+  const p=pool()[idx]; if(!p)return;
+  const i=saved.findIndex(x=>x[2]===p[2]); if(i>=0)saved.splice(i,1); else saved.push(p);
+  localStorage.setItem('mmd_saved',JSON.stringify(saved));render();toast(i>=0?'Removed from saved':'Saved');
 };
-$("share").onclick=async()=>{
- const p=pool()[idx]; if(!p)return;
- const text=`${p[2]}\n\n— MAKE MY DAY`;
- try{if(navigator.share)await navigator.share({text});else{await navigator.clipboard.writeText(text);toast("Copied to clipboard")}}catch(e){}
+$('share').onclick=async()=>{
+  const p=pool()[idx]; if(!p)return;
+  const text=`${p[2]}\n\n— MAKE MY DAY`;
+  try{if(navigator.share)await navigator.share({text});else{await navigator.clipboard.writeText(text);toast('Copied to clipboard')}}catch(e){}
 };
-$("contribute").onclick=()=>$("modal").classList.add("open");
-$("close").onclick=()=>$("modal").classList.remove("open");
-$("submit").onclick=()=>{
- const name=$("name").value.trim(), message=$("thought").value.trim();
- if(!message){toast("Please write your thought");return}
- community.push({name:name||"Anonymous",language:$("cLang").value,category:$("cCat").value,message});
- localStorage.setItem("mmd_community",JSON.stringify(community));
- $("name").value="";$("thought").value="";$("modal").classList.remove("open");renderCommunity();toast("Submitted for review");
+$('contribute').onclick=()=>$('modal').classList.add('open');
+$('close').onclick=()=>$('modal').classList.remove('open');
+$('submit').onclick=()=>{
+  const name=$('name').value.trim(), message=$('thought').value.trim();
+  if(!message){toast('Please write your thought');return}
+  community.push({name:name||'Anonymous',language:$('cLang').value,category:$('cCat').value,message});
+  localStorage.setItem('mmd_community',JSON.stringify(community));
+  $('name').value='';$('thought').value='';$('modal').classList.remove('open');renderCommunity();toast('Submitted for review');
 };
-$("clear").onclick=()=>{if(confirm("Reset saved and community test data?")){localStorage.removeItem("mmd_saved");localStorage.removeItem("mmd_community");location.reload()}};
+$('clear').onclick=()=>{if(confirm('Reset saved and community test data?')){localStorage.removeItem('mmd_saved');localStorage.removeItem('mmd_community');location.reload()}};
 function applyTheme(dark){
- document.documentElement.dataset.dark=dark?"1":"0";
- if(dark){
-  document.documentElement.style.setProperty("--bg","#101116");
-  document.documentElement.style.setProperty("--card","#191a21");
-  document.documentElement.style.setProperty("--text","#f4f4f7");
-  document.documentElement.style.setProperty("--muted","#a7a8b3");
-  document.documentElement.style.setProperty("--border","#30313b");
-  document.documentElement.style.setProperty("--soft","#26243f");
-  $("themeBtn").textContent="☀";
- }else{
-  document.documentElement.style.setProperty("--bg","#f5f6fb");
-  document.documentElement.style.setProperty("--card","#fff");
-  document.documentElement.style.setProperty("--text","#171827");
-  document.documentElement.style.setProperty("--muted","#6b6d7a");
-  document.documentElement.style.setProperty("--border","#e6e7ef");
-  document.documentElement.style.setProperty("--soft","#efeeff");
-  $("themeBtn").textContent="☾";
- }
- localStorage.setItem("mmd_theme",dark?"dark":"light");
+  document.documentElement.dataset.dark=dark?'1':'0';
+  if(dark){
+   document.documentElement.style.setProperty('--bg','#101116');
+   document.documentElement.style.setProperty('--card','#191a21');
+   document.documentElement.style.setProperty('--text','#f4f4f7');
+   document.documentElement.style.setProperty('--muted','#a7a8b3');
+   document.documentElement.style.setProperty('--border','#30313b');
+   document.documentElement.style.setProperty('--soft','#26243f');
+   $('themeBtn').textContent='☀';
+  }else{
+   document.documentElement.style.setProperty('--bg','#f5f6fb');
+   document.documentElement.style.setProperty('--card','#fff');
+   document.documentElement.style.setProperty('--text','#171827');
+   document.documentElement.style.setProperty('--muted','#6b6d7a');
+   document.documentElement.style.setProperty('--border','#e6e7ef');
+   document.documentElement.style.setProperty('--soft','#efeeff');
+   $('themeBtn').textContent='☾';
+  }
+  localStorage.setItem('mmd_theme',dark?'dark':'light');
 }
-$("themeBtn").onclick=()=>applyTheme(document.documentElement.dataset.dark!=="1");
-applyTheme(localStorage.getItem("mmd_theme")==="dark");
-
-function getNotificationBody(){
-  const p=pool();
-  if(!p.length) return "Take one useful step today.";
-  const m=p[Math.floor(Math.random()*p.length)];
-  return $("notifType").value==="reminder"
-    ? "Take a moment for yourself. Open MAKE MY DAY for today's thought."
-    : m[2];
-}
-
-function showNotificationPreview(){
-  const box=$("notifPreview");
-  $("notifPreviewText").textContent=getNotificationBody();
-  box.style.display="block";
-  clearTimeout(window.mmdPreviewTimer);
-  window.mmdPreviewTimer=setTimeout(()=>box.style.display="none",6000);
-}
-
-function updateNotificationStatus(){
-  const enabled=localStorage.getItem("mmd_notif_enabled")==="1";
-  const time=localStorage.getItem("mmd_notif_time")||"09:00";
-  $("notifStatus").textContent=enabled ? `On · Daily at ${time}` : "Notifications are off";
-  $("notifEnabled").checked=enabled;
-  $("notifTime").value=time;
-  $("notifType").value=localStorage.getItem("mmd_notif_type")||"thought";
-}
-
-function initNotifications(){
-  updateNotificationStatus();
-  $("notifSettings").onclick=()=>{updateNotificationStatus();$("notifModal").classList.add("open")};
-  $("notifClose").onclick=()=>$("notifModal").classList.remove("open");
-  $("testNotif").onclick=showNotificationPreview;
-  $("notifPreviewClose").onclick=()=>$("notifPreview").style.display="none";
-  $("saveNotif").onclick=()=>{
-    localStorage.setItem("mmd_notif_enabled",$("notifEnabled").checked?"1":"0");
-    localStorage.setItem("mmd_notif_time",$("notifTime").value||"09:00");
-    localStorage.setItem("mmd_notif_type",$("notifType").value);
-    updateNotificationStatus();
-    $("notifModal").classList.remove("open");
-    toast($("notifEnabled").checked ? `Daily notification set for ${$("notifTime").value}` : "Notifications turned off");
-  };
-}
+$('themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.dark!=='1');
+applyTheme(localStorage.getItem('mmd_theme')==='dark');
+window.mmdOpenQuoteFromNotification = function(text){
+  if(!text) return;
+  const message = String(text);
+  $('message').textContent = message;
+  $('langPill').textContent = 'Notification';
+  $('catPill').textContent = 'Selected';
+  toast('Opened from notification');
+};
 
 try{
   fill();
   render();
   initNotifications();
+  updateNotificationStatus();
 }catch(e){
-  console.error("MAKE MY DAY initialization error:",e);
+  console.error('MAKE MY DAY initialization error:',e);
 }
 </script>
 </body>
