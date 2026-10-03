@@ -1,0 +1,94 @@
+name: Diagnose Duplicate Classes
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    name: Analyze Dependencies and Duplicate Classes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+
+      - name: Install Android SDK 34
+        run: |
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Run debugRuntimeClasspath dependency tree
+        run: |
+          gradle app:dependencies --configuration debugRuntimeClasspath > /tmp/dependencies-tree.txt 2>&1
+          cat /tmp/dependencies-tree.txt
+
+      - name: Run dependencyInsight for androidx.core
+        run: |
+          gradle app:dependencyInsight \
+            --configuration debugRuntimeClasspath \
+            --dependency androidx.core \
+            > /tmp/insight-core.txt 2>&1
+          cat /tmp/insight-core.txt
+
+      - name: Run dependencyInsight for androidx.annotation
+        run: |
+          gradle app:dependencyInsight \
+            --configuration debugRuntimeClasspath \
+            --dependency androidx.annotation \
+            > /tmp/insight-annotation.txt 2>&1
+          cat /tmp/insight-annotation.txt
+
+      - name: Run dependencyInsight for androidx.appcompat
+        run: |
+          gradle app:dependencyInsight \
+            --configuration debugRuntimeClasspath \
+            --dependency androidx.appcompat \
+            > /tmp/insight-appcompat.txt 2>&1
+          cat /tmp/insight-appcompat.txt
+
+      - name: Build APK with full debug output
+        run: |
+          set +e
+          gradle assembleDebug --no-daemon --info 2>&1 | tee /tmp/build-output.txt
+          BUILD_EXIT=${PIPESTATUS[0]}
+          echo "Gradle build exit code: $BUILD_EXIT"
+          exit $BUILD_EXIT
+
+      - name: Extract checkDebugDuplicateClasses error
+        if: always()
+        run: |
+          echo "=== checkDebugDuplicateClasses Error Output ===" > /tmp/duplicate-classes-error.txt
+          grep -A 300 "checkDebugDuplicateClasses" /tmp/build-output.txt \
+            >> /tmp/duplicate-classes-error.txt 2>&1 \
+            || echo "No checkDebugDuplicateClasses output found" \
+            >> /tmp/duplicate-classes-error.txt
+          cat /tmp/duplicate-classes-error.txt
+
+      - name: Upload diagnostic artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duplicate-classes-diagnostic
+          path: |
+            /tmp/dependencies-tree.txt
+            /tmp/insight-core.txt
+            /tmp/insight-annotation.txt
+            /tmp/insight-appcompat.txt
+            /tmp/build-output.txt
+            /tmp/duplicate-classes-error.txt
+          retention-days: 7
